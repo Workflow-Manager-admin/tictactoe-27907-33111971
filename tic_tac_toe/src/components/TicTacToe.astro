@@ -1,0 +1,181 @@
+---
+const BOARD_SIZE = 3;
+
+function emptyBoard() {
+  return Array(BOARD_SIZE * BOARD_SIZE).fill("");
+}
+
+const players = [
+  { symbol: "X", name: "Player 1" },
+  { symbol: "O", name: "Player 2" }
+];
+
+// PUBLIC_INTERFACE
+function calculateWinner(squares) {
+  const lines = [
+    // rows
+    [0,1,2],[3,4,5],[6,7,8],
+    // cols
+    [0,3,6],[1,4,7],[2,5,8],
+    // diagonals
+    [0,4,8],[2,4,6]
+  ];
+  for (const [a,b,c] of lines) {
+    if (
+      squares[a] &&
+      squares[a] === squares[b] &&
+      squares[a] === squares[c]
+    ) {
+      return squares[a];
+    }
+  }
+  if (squares.every(cell => cell)) return "Draw";
+  return null;
+}
+
+// State stored in <script type="module" client:load>
+let board = emptyBoard();
+let activePlayer = 0;
+let isGameOver = false;
+let winner = null;
+
+function handleCellClick(idx) {
+  if (board[idx] || isGameOver) return;
+  board[idx] = players[activePlayer].symbol;
+  winner = calculateWinner(board);
+  if (winner) {
+    isGameOver = true;
+  } else {
+    activePlayer = 1 - activePlayer;
+  }
+  render();
+}
+
+function handleRestart() {
+  board = emptyBoard();
+  activePlayer = 0;
+  isGameOver = false;
+  winner = null;
+  render();
+}
+
+// PUBLIC_INTERFACE
+function render() {
+  // Render player turn/winner indicator
+  document.getElementById("ttt-indicator").textContent =
+    winner
+      ? winner === "Draw"
+        ? "It's a Draw!"
+        : `${winner} Wins!`
+      : `Current Turn: ${players[activePlayer].symbol}`;
+  // Render board
+  for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+    const cell = document.getElementById(`ttt-cell-${i}`);
+    cell.textContent = board[i];
+    cell.setAttribute("aria-label", board[i] ? `Filled ${board[i]}` : "Empty");
+    cell.className = "ttt-cell" + (board[i] ? " ttt-filled" : "");
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener('DOMContentLoaded', () => {
+    // Attach click handlers
+    for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+      document.getElementById(`ttt-cell-${i}`).onclick = () => handleCellClick(i);
+    }
+    document.getElementById("ttt-restart").onclick = handleRestart;
+    render();
+  });
+}
+---
+
+<style>
+:root {
+  --primary: #ffffff;
+  --secondary: #000000;
+  --accent: #2196f3;
+}
+
+.ttt-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--primary);
+}
+
+.ttt-indicator {
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  color: var(--secondary);
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.ttt-board {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(3, 64px);
+  gap: 8px;
+  margin-bottom: 2rem;
+}
+
+.ttt-cell {
+  width: 64px;
+  height: 64px;
+  background: var(--primary);
+  border: 1.5px solid var(--accent);
+  color: var(--secondary);
+  font-size: 2.2rem;
+  font-family: Inter, Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.ttt-cell:hover {
+  background: #f6faff;
+}
+.ttt-filled {
+  color: var(--accent);
+  cursor: default;
+}
+#ttt-restart {
+  background: var(--accent);
+  color: var(--primary);
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#ttt-restart:hover {
+  background: #1769aa;
+}
+</style>
+
+<div class="ttt-container">
+  <div id="ttt-indicator" class="ttt-indicator">
+    Current Turn: X
+  </div>
+  <div class="ttt-board">
+    {Array.from({length: BOARD_SIZE * BOARD_SIZE}).map((_, i) => (
+      <div
+        id={`ttt-cell-${i}`}
+        class="ttt-cell"
+        tabIndex="0"
+        role="button"
+        aria-label="Empty"
+        style="outline: none;"
+      ></div>
+    ))}
+  </div>
+  <button id="ttt-restart" type="button">
+    Restart
+  </button>
+</div>
