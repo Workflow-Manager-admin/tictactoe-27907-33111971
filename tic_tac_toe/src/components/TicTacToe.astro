@@ -1,92 +1,9 @@
 ---
-const BOARD_SIZE = 3;
-
-function emptyBoard() {
-  return Array(BOARD_SIZE * BOARD_SIZE).fill("");
-}
-
-const players = [
-  { symbol: "X", name: "Player 1" },
-  { symbol: "O", name: "Player 2" }
-];
-
-// PUBLIC_INTERFACE
-function calculateWinner(squares) {
-  const lines = [
-    // rows
-    [0,1,2],[3,4,5],[6,7,8],
-    // cols
-    [0,3,6],[1,4,7],[2,5,8],
-    // diagonals
-    [0,4,8],[2,4,6]
-  ];
-  for (const [a,b,c] of lines) {
-    if (
-      squares[a] &&
-      squares[a] === squares[b] &&
-      squares[a] === squares[c]
-    ) {
-      return squares[a];
-    }
-  }
-  if (squares.every(cell => cell)) return "Draw";
-  return null;
-}
-
-// State stored in <script type="module" client:load>
-let board = emptyBoard();
-let activePlayer = 0;
-let isGameOver = false;
-let winner = null;
-
-function handleCellClick(idx) {
-  if (board[idx] || isGameOver) return;
-  board[idx] = players[activePlayer].symbol;
-  winner = calculateWinner(board);
-  if (winner) {
-    isGameOver = true;
-  } else {
-    activePlayer = 1 - activePlayer;
-  }
-  render();
-}
-
-function handleRestart() {
-  board = emptyBoard();
-  activePlayer = 0;
-  isGameOver = false;
-  winner = null;
-  render();
-}
-
-// PUBLIC_INTERFACE
-function render() {
-  // Render player turn/winner indicator
-  document.getElementById("ttt-indicator").textContent =
-    winner
-      ? winner === "Draw"
-        ? "It's a Draw!"
-        : `${winner} Wins!`
-      : `Current Turn: ${players[activePlayer].symbol}`;
-  // Render board
-  for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
-    const cell = document.getElementById(`ttt-cell-${i}`);
-    cell.textContent = board[i];
-    cell.setAttribute("aria-label", board[i] ? `Filled ${board[i]}` : "Empty");
-    cell.className = "ttt-cell" + (board[i] ? " ttt-filled" : "");
-  }
-}
-
-if (typeof window !== "undefined") {
-  window.addEventListener('DOMContentLoaded', () => {
-    // Attach click handlers
-    for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
-      document.getElementById(`ttt-cell-${i}`).onclick = () => handleCellClick(i);
-    }
-    document.getElementById("ttt-restart").onclick = handleRestart;
-    render();
-  });
-}
+/**
+ * TicTacToe.astro - Minimalist, interactive 3x3 two-player tic tac toe game.
+ * Built for Astro with proper import/export and client-side behavior using client:load hydration.
+ */
+// No props needed for basic gameplay.
 ---
 
 <style>
@@ -159,23 +76,110 @@ if (typeof window !== "undefined") {
 }
 </style>
 
-<div class="ttt-container">
+<div class="ttt-container" id="ttt-root">
   <div id="ttt-indicator" class="ttt-indicator">
     Current Turn: X
   </div>
-  <div class="ttt-board">
-    {Array.from({length: BOARD_SIZE * BOARD_SIZE}).map((_, i) => (
-      <div
-        id={`ttt-cell-${i}`}
-        class="ttt-cell"
-        tabIndex="0"
-        role="button"
-        aria-label="Empty"
-        style="outline: none;"
-      ></div>
-    ))}
+  <div class="ttt-board" id="ttt-board">
+    <!-- Cells will be generated in the client script for proper event binding -->
+    <div id="ttt-cell-0" class="ttt-cell" tabIndex="0" role="button" aria-label="Empty" style="outline: none;"></div>
+    <div id="ttt-cell-1" class="ttt-cell" tabIndex="0" role="button" aria-label="Empty" style="outline: none;"></div>
+    <div id="ttt-cell-2" class="ttt-cell" tabIndex="0" role="button" aria-label="Empty" style="outline: none;"></div>
+    <div id="ttt-cell-3" class="ttt-cell" tabIndex="0" role="button" aria-label="Empty" style="outline: none;"></div>
+    <div id="ttt-cell-4" class="ttt-cell" tabIndex="0" role="button" aria-label="Empty" style="outline: none;"></div>
+    <div id="ttt-cell-5" class="ttt-cell" tabIndex="0" role="button" aria-label="Empty" style="outline: none;"></div>
+    <div id="ttt-cell-6" class="ttt-cell" tabIndex="0" role="button" aria-label="Empty" style="outline: none;"></div>
+    <div id="ttt-cell-7" class="ttt-cell" tabIndex="0" role="button" aria-label="Empty" style="outline: none;"></div>
+    <div id="ttt-cell-8" class="ttt-cell" tabIndex="0" role="button" aria-label="Empty" style="outline: none;"></div>
   </div>
   <button id="ttt-restart" type="button">
     Restart
   </button>
 </div>
+
+<script type="module" client:load>
+const BOARD_SIZE = 3;
+const players = [
+  { symbol: "X", name: "Player 1" },
+  { symbol: "O", name: "Player 2" }
+];
+
+function emptyBoard() {
+  return Array(BOARD_SIZE * BOARD_SIZE).fill("");
+}
+
+// PUBLIC_INTERFACE
+function calculateWinner(squares) {
+  const lines = [
+    // rows
+    [0,1,2],[3,4,5],[6,7,8],
+    // cols
+    [0,3,6],[1,4,7],[2,5,8],
+    // diagonals
+    [0,4,8],[2,4,6]
+  ];
+  for (const [a,b,c] of lines) {
+    if (
+      squares[a] &&
+      squares[a] === squares[b] &&
+      squares[a] === squares[c]
+    ) {
+      return squares[a];
+    }
+  }
+  if (squares.every(cell => cell)) return "Draw";
+  return null;
+}
+
+let board = emptyBoard();
+let activePlayer = 0;
+let isGameOver = false;
+let winner = null;
+
+// PUBLIC_INTERFACE
+function render() {
+  // Update indicator
+  const indicator = document.getElementById("ttt-indicator");
+  indicator.textContent =
+    winner
+      ? winner === "Draw"
+        ? "It's a Draw!"
+        : `${winner} Wins!`
+      : `Current Turn: ${players[activePlayer].symbol}`;
+  // Render cells
+  for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+    const cell = document.getElementById(`ttt-cell-${i}`);
+    cell.textContent = board[i];
+    cell.setAttribute("aria-label", board[i] ? `Filled ${board[i]}` : "Empty");
+    cell.className = "ttt-cell" + (board[i] ? " ttt-filled" : "");
+  }
+}
+
+function handleCellClick(idx) {
+  if (board[idx] || isGameOver) return;
+  board[idx] = players[activePlayer].symbol;
+  winner = calculateWinner(board);
+  if (winner) {
+    isGameOver = true;
+  } else {
+    activePlayer = 1 - activePlayer;
+  }
+  render();
+}
+
+function handleRestart() {
+  board = emptyBoard();
+  activePlayer = 0;
+  isGameOver = false;
+  winner = null;
+  render();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  for (let i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+    document.getElementById(`ttt-cell-${i}`).onclick = () => handleCellClick(i);
+  }
+  document.getElementById("ttt-restart").onclick = handleRestart;
+  render();
+});
+</script>
